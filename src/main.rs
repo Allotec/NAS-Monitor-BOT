@@ -40,6 +40,7 @@ fn get_user_from_env() -> Option<UserId> {
 fn get_disk_report() -> Vec<String> {
     let disks: Vec<String> = Device::devices(true)
         .map(|device| device.path().to_str().unwrap().to_string())
+        .filter(|path| !path.contains("md") && !path.contains("mapper") && !path.contains("loop"))
         .collect();
     let mut disk_reports = Vec::new();
 
@@ -52,7 +53,8 @@ fn get_disk_report() -> Vec<String> {
             .expect("Failed to execute script");
 
         if output.status.success() {
-            disk_reports.push(String::from_utf8_lossy(&output.stdout).to_string());
+            let output = String::from_utf8_lossy(&output.stdout).to_string();
+            disk_reports.push(format!("\\{output}\\"));
         } else {
             disk_reports.push(format!(
                 "{} Failed to run disk check script {}",
